@@ -35,7 +35,7 @@ from buildbot.process.buildstep import ShellMixin
 RE_LINE_COLLECTING = re.compile(r"^(collecting .*)(collected)(.*)(items)$")
 RE_LINE_COLLECTED = re.compile(r"^(collected)(.*)(items)$")
 RE_LINE_FAILURES = re.compile(r"^=+ FAILURES =+$")
-RE_LINE_RESULTS = re.compile(r"=+ ((?P<failures>\d+) failed|)(,? ?(?P<passed>\d+) passed|)(,? ?(?P<skips>\d+) skipped|)(,? ?(?P<deselected>\d+) deselected|)(,? ?(?P<expectedFailures>\d+) xfailed|)(,? ?(?P<unexpectedSuccesses>\d+) xpassed|)(,? ?(?P<error>\d+) error|) in [\d.]+ seconds =+")
+RE_LINE_RESULTS = re.compile(r"=+ ((?P<failures>\d+) failed|)(,? ?(?P<passed>\d+) passed|)(,? ?(?P<skips>\d+) skipped|)(,? ?(?P<warnings>\d+) warnings|)(,? ?(?P<deselected>\d+) deselected|)(,? ?(?P<expectedFailures>\d+) xfailed|)(,? ?(?P<unexpectedSuccesses>\d+) xpassed|)(,? ?(?P<error>\d+) error|) in [\d.]+ seconds =+")
 RE_TEST_MODES = {
     "pytest": re.compile(r"^(?P<path>.+):\d+: (?P<testname>.+) (?P<status>.+)$"),
     "xdist": re.compile(r"^\[.+\] (?P<status>.+) (?P<path>.+):\d+: (?P<testname>.+)$")
@@ -299,6 +299,7 @@ class Pytest(BuildStep, ShellMixin):
 
         self.collected_results = {
             'total': 0,
+            'warnings': 0,
             'failures': 0,
             'skips': 0,
             'error': 0,
@@ -329,6 +330,7 @@ class Pytest(BuildStep, ShellMixin):
             results = FAILURE
             return ["testlog", "unparseable"]
 
+        warnings = self.collected_results['warnings']
         failures = self.collected_results['failures']
         errors = self.collected_results['error']
         skips = self.collected_results['skips']
@@ -374,10 +376,13 @@ class Pytest(BuildStep, ShellMixin):
             passed -= deselected
             text.append("%d %s" % (deselected, "deselected"))
 
-        if passed < total:
+        if passed < total or warnings:
             text.append("%d" % passed)
 
         if total:
             text.append("passed")
+
+        if warnings:
+            text.append("%d %s" % (warnings, "warnings"))
 
         return text

@@ -155,6 +155,22 @@ class TestPytest(BuildStepMixin, TestCase):
         self.expectOutcome(result=FAILURE, state_string='total 3 tests 1 failed 2 passed (failure)')
         return self.runStep()
 
+    def test_run_plural_with_warnings(self):
+        self.setupStep(
+            Pytest(workdir='build',
+                   tests='testname',
+                   verbose=False,
+                   testpath=None))
+        self.expectCommands(
+            ExpectShell(workdir='build',
+                        command=[Pytest.DEFAULT_PYTEST, 'testname'])
+            + ExpectShell.log('stdio', stdout="""collected 3 items
+==== 3 passed, 1 warnings in 10.1 seconds =====
+""")
+            + SUCCESS)
+        self.expectOutcome(result=SUCCESS, state_string='total 3 tests 3 passed 1 warnings')
+        return self.runStep()
+
     def test_run_plural_with_skips(self):
         self.setupStep(
             Pytest(workdir='build',
