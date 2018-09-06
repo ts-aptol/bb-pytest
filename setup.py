@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from os import path
 
-version = '0.3'
+from bb_pytest import __version__
 
 changelog_header = """
 Changelog
@@ -16,7 +16,7 @@ description = open(desc_file).read() + changelog_header + open(changelog_file).r
 
 setup(
     name='bb-pytest',
-    version=version,
+    version=__version__,
     description="Buildbot step for py.test.",
     long_description=description,
     classifiers=[],  # Get strings from
@@ -32,7 +32,7 @@ setup(
     install_requires=[
         'buildbot'
     ],
-    entry_points="""
-        # -*- Entry points: -*-
-        """,
+    entry_points={
+        'buildbot.steps': 'Pytest = bb_pytest:Pytest'
+    },
 )
