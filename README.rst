@@ -8,7 +8,7 @@ tests.
 Arguments
 ---------
 
-This test step is derived from the ShellCommand step.  So besides the
+This test step used ShellMixin. So besides the
 arguments listed below the following steps will also be accpeted and
 will behave as per the ShellCommand step: workdir, haltOnFailure,
 flunkOnWarnings, flunkOnFailure, warnOnWarnings, warnOnFailure,
@@ -28,23 +28,31 @@ pytestMode
   The mode that should used to track the progress of the step. Valid
   options are "pytest" or "xdist".
 
+pytestArgs
+  The pytest arguments to be passed on command line
+
+verbose
+  The pytest '-v' argument, also used to properly process output from pytest. ('-v' shall not be used in pytestArgs)
+
+
 Example
 -------
 
 .. code:: python
 
-  from bb_pytest import step
-  from buildbot.process import factory 
+  from buildbot.plugins import steps, util
 
-  f = factory.BuildFactory()
+  factory = util.BuildFactory()
 
-  f.Factory.addStep(
-      Pytest(
-          pytest="py.test",
-          pytestArgs=['-u', '-i'],
+  factory.addStep(
+      steps.Pytest(
+          pytest="venv/bin/pytest",
+          pytestArgs=[],
           testpath=None,
-          tests=[""],
-          flunkOnFailure=True))
+          tests=[],
+          flunkOnFailure=True
+      )
+  )
 
 
 .. _buildbot: http://trac.buildbot.net/

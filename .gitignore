@@ -1,3 +1,7 @@
+.idea
+.pytest_cache
+*.pyc
 /bb_pytest.egg-info/
 /_trial_temp/
 /dist/
+*venv
