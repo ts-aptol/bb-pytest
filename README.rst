@@ -40,18 +40,19 @@ Example
 
 .. code:: python
 
-  from bb_pytest import step
-  from buildbot.process import factory 
+  from buildbot.plugins import steps, util
 
-  f = factory.BuildFactory()
+  factory = util.BuildFactory()
 
-  f.Factory.addStep(
-      Pytest(
-          pytest="pytest",
-          pytestArgs=['-u', '-i'],
+  factory.addStep(
+      steps.Pytest(
+          pytest="venv/bin/pytest",
+          pytestArgs=[],
           testpath=None,
-          tests=[""],
-          flunkOnFailure=True))
+          tests=[],
+          flunkOnFailure=True
+      )
+  )
 
 
 .. _buildbot: http://trac.buildbot.net/
