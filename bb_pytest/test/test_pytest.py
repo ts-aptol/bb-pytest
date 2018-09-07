@@ -278,6 +278,24 @@ collecting ... collected 11 items
         self.expectOutcome(result=FAILURE, state_string='total 11 tests 1 failed 3 errors 1 deselected 6 passed (failure)')
         return self.runStep()
 
+    def test_run_with_coverage(self):
+        self.setupStep(
+            Pytest(workdir='build',
+                   tests='testname',
+                   verbose=False,
+                   testpath=None))
+        self.expectCommands(
+            ExpectShell(workdir='build',
+                        command=[Pytest.DEFAULT_PYTEST, 'testname'])
+            + ExpectShell.log('stdio', stdout="""collected 3 items
+src/code.py                                                                  31      0      4      0   100%
+-----------------------------------------------------------------------------------------------------------
+TOTAL                                                                     20352  14894   5969     81    22%
+==== 0 failed, 2 passed, 1 skipped in 11.1 seconds =====
+""")
+            + SUCCESS)
+        self.expectOutcome(result=SUCCESS, state_string='total 3 tests 1 skiped 2 passed 22% coverage')
+        return self.runStep()
 
 MODULE_DIR = abspath(dirname(__file__))
 FIXTURE_PATH = MODULE_DIR + "/fixture.py"
