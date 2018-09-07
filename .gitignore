@@ -4,4 +4,5 @@
 /bb_pytest.egg-info/
 /_trial_temp/
 /dist/
-*venv
+venv
+.venv

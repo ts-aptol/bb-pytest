@@ -29,9 +29,6 @@ setup(
     packages=find_packages(exclude=['tests']),
     include_package_data=True,
     zip_safe=False,
-    install_requires=[
-        'buildbot'
-    ],
     entry_points={
         'buildbot.steps': 'Pytest = bb_pytest:Pytest'
     },
