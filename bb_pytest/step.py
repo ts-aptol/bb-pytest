@@ -31,7 +31,7 @@ from buildbot.process import logobserver
 from buildbot.process.buildstep import BuildStep
 from buildbot.process.buildstep import ShellMixin
 
-
+RE_LINE_COVERAGE_TOTAL = re.compile(r"^TOTAL.*\s+(?P<coverage_total>\d+%)\s*$")
 RE_LINE_COLLECTING = re.compile(r"^(collecting .*)(collected)(.*)(items)$")
 RE_LINE_COLLECTED = re.compile(r"^(collected)(.*)(items)$")
 RE_LINE_FAILURES = re.compile(r"^=+ FAILURES =+$")
@@ -79,6 +79,13 @@ class PytestTestCaseCounter(logobserver.LogLineObserver):
                 except:
                     self.totalTests = -1
             return
+
+        if (self.testing or self.catching) and line.startswith("TOTAL"):
+            m = RE_LINE_COVERAGE_TOTAL.search(line.strip())
+            if m:
+                self.step.collected_results['coverage-total'] = m.groupdict()['coverage_total'].strip('%')
+                self.step.updateSummary()
+                return
 
         # testing mode
         if self.testing and line.startswith("="):
@@ -299,6 +306,7 @@ class Pytest(BuildStep, ShellMixin):
 
         self.collected_results = {
             'total': 0,
+            'coverage-total': 0,
             'warnings': 0,
             'failures': 0,
             'skips': 0,
@@ -330,6 +338,7 @@ class Pytest(BuildStep, ShellMixin):
             results = FAILURE
             return ["testlog", "unparseable"]
 
+        coverage_total = self.collected_results['coverage-total']
         warnings = self.collected_results['warnings']
         failures = self.collected_results['failures']
         errors = self.collected_results['error']
@@ -384,5 +393,8 @@ class Pytest(BuildStep, ShellMixin):
 
         if warnings:
             text.append("%d %s" % (warnings, "warnings"))
+
+        if coverage_total:
+            text.append("%s%% %s" % (coverage_total, "coverage"))
 
         return text
