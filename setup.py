@@ -22,7 +22,7 @@ setup(
     keywords='',
     author='Russell Sim',
     author_email='russell.sim@gmail.com',
-    url='https://github.com/russell/bb-pytest',
+    url='https://github.com/ciarancourtney/bb-pytest',
     license='GPL',
     packages=find_packages(exclude=['tests']),
     include_package_data=True,

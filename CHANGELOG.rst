@@ -1,7 +1,12 @@
-Release 0.3 X/X/2017
+Release 0.3.1 2020-01-21
 ----------------------
 
-* updated to buildbot 0.9.X.
+* Set version statically in setup.py so pkg can be installed by poetry 1.x
+
+Release 0.3.0 2020-01-03
+----------------------
+
+* Support Buildbot >=1.x
 
 Release 0.2 10/04/2013
 ----------------------
