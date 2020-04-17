@@ -35,13 +35,34 @@ RE_LINE_COVERAGE_TOTAL = re.compile(r"^TOTAL.*\s+(?P<coverage_total>\d+%)\s*$")
 RE_LINE_COLLECTING = re.compile(r"^(collecting .*)(collected)(.*)(items)$")
 RE_LINE_COLLECTED = re.compile(r"^(collected)(.*)(items)$")
 RE_LINE_FAILURES = re.compile(r"^=+ FAILURES =+$")
-RE_LINE_RESULTS = re.compile(r"=+ ((?P<failures>\d+) failed|)(,? ?(?P<passed>\d+) passed|)(,? ?(?P<skips>\d+) skipped|)(,? ?(?P<warnings>\d+) warnings|)(,? ?(?P<deselected>\d+) deselected|)(,? ?(?P<expectedFailures>\d+) xfailed|)(,? ?(?P<unexpectedSuccesses>\d+) xpassed|)(,? ?(?P<error>\d+) error|) in [\d.]+ seconds =+")
 RE_TEST_MODES = {
     "pytest": re.compile(r"^(?P<path>.+):\d+: (?P<testname>.+) (?P<status>.+)$"),
     "xdist": re.compile(r"^\[.+\] (?P<status>.+) (?P<path>.+):\d+: (?P<testname>.+)$")
     }
 
+line_results_dim = {
+    'failures': 'failed',
+    'passed': 'passed',
+    'skips': 'skipped',
+    'warnings': 'warning',
+    'deselected': 'deselected',
+    'expectedFailures': 'xfailed',
+    'unexpectedSuccesses': 'xpassed',
+    'error': 'error'
+}
 
+RE_LINE_RESULTS = '|'.join([
+    r'(?P<{}>(\d+) (?={}s?))'.format(group_name, pytest_val_name)
+    for group_name, pytest_val_name in line_results_dim.items()
+])
+
+RE_LINE_RESULTS = re.compile(RE_LINE_RESULTS)
+def re_line_results_matcher(str):
+    groups = {}
+    matches = re.finditer(RE_LINE_RESULTS, str)
+    for match in matches:
+        groups.update({k: int(v) for k, v in match.groupdict().items() if v is not None})
+    return groups
 class PytestTestCaseCounter(logobserver.LogLineObserver):
 
     def __init__(self, pytestMode):
@@ -52,7 +73,7 @@ class PytestTestCaseCounter(logobserver.LogLineObserver):
         self.collecting = True
         self.testing = False
         self.catching = False
-        logobserver.LogLineObserver.__init__(self)
+        super().__init__()
 
     def outLineReceived(self, line):
         # line format
@@ -98,9 +119,9 @@ class PytestTestCaseCounter(logobserver.LogLineObserver):
 
         if (self.testing or self.catching) and line.startswith("="):
             # check for final row with summary
-            m = RE_LINE_RESULTS.search(line.strip())
+            m = re_line_results_matcher(line.strip())
             if m:
-                self.step.collected_results.update(dict([(k, 0 if v is None else int(v)) for k, v in m.groupdict().items()]))
+                self.step.collected_results.update(m)
                 self.step.collected_results["total"] = self.totalTests
                 self.step.description = [self.step.description[0], "finished"]
                 self.step.updateSummary()
@@ -326,7 +347,6 @@ class Pytest(BuildStep, ShellMixin):
             self.addCompleteLog("problems", "\n".join(self.catched_failures))
 
         defer.returnValue(cmd.results())
-
 
     def finalDescription(self, cmd):
         # figure out all status, then let the various hook functions return
